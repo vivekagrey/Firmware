@@ -164,9 +164,29 @@ class GzserverRunner(Runner):
         self.cmd = "gzserver"
         self.args = ["--verbose",
                      workspace_dir + "/Tools/sitl_gazebo/worlds/" +
-                     model + ".world"]
+                     "empty.world"]
         self.log_prefix = "gzserver"
 
+class GzspawnRunner(Runner):
+    def __init__(self, model, workspace_dir, log_dir, speed_factor):
+        super().__init__(log_dir)
+        self.env = {"PATH": os.environ['PATH'],
+                    "HOME": os.environ['HOME'],
+                    "GAZEBO_PLUGIN_PATH":
+                    workspace_dir + "/build/px4_sitl_default/build_gazebo",
+                    "GAZEBO_MODEL_PATH":
+                    workspace_dir + "/Tools/sitl_gazebo/models",
+                    "PX4_SIM_SPEED_FACTOR": str(speed_factor),
+                    "DISPLAY": os.environ['DISPLAY']}
+        self.cmd = "gz"
+        self.args = ["model", "--spawn-file",
+                     workspace_dir + "/Tools/sitl_gazebo/models/" +
+                     model + "/" + model + ".sdf",
+                     "--model-name", model,
+                     "-x", "1.01",
+                     "-y", "0.98",
+                     "-z", "0.83"]
+        self.log_prefix = "gzspawn"
 
 class GzclientRunner(Runner):
     def __init__(self, workspace_dir, log_dir):
@@ -331,6 +351,11 @@ def run_test(test, group, args):
     gzserver_runner = GzserverRunner(
         group['model'], os.getcwd(), args.log_dir, args.speed_factor)
     gzserver_runner.start(group)
+
+    gzspawn_runner = GzspawnRunner(
+        group['model'], os.getcwd(), args.log_dir, args.speed_factor)
+    gzspawn_runner.start(group)
+    gzspawn_runner.wait(group['timeout_min'])
 
     if args.gui:
         gzclient_runner = GzclientRunner(
