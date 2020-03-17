@@ -355,7 +355,6 @@ def run_test(test, group, args):
     gzspawn_runner = GzspawnRunner(
         group['model'], os.getcwd(), args.log_dir, args.speed_factor)
     gzspawn_runner.start(group)
-    gzspawn_runner.wait(group['timeout_min'])
 
     if args.gui:
         gzclient_runner = GzclientRunner(
